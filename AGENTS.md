@@ -28,3 +28,15 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+
+- No auth, no backend database, no external API keys, no personal data: the user's explicit constraint for this app.
+- Task business logic lives in `src/lib/tasks/` as pure TypeScript (no React, no browser globals, no mutation); why: keeps it unit-testable and easy to inspect.
+- `createTask` takes `id` and `now` as arguments rather than generating them; why: deterministic tests.
+- All persistence goes through `src/lib/tasks/storage.ts`, which never throws and validates stored data with `parseTask`; why: blocked or corrupted localStorage must degrade to an in-memory list.
+- Storage uses a versioned envelope under one key; bump the version and migrate in `parseStoredTasks` on format changes; why: old saved data must keep loading.
+- `useTasks` reads localStorage only inside `useEffect`; why: the page is server-rendered and the first client render must match.
+- Components under `src/components/tasks/` are presentational and receive data and callbacks via props; why: separates UI from state logic.
+- The task filter lives in the URL search param `filter` (omitted for "all"); why: survives refresh and is shareable.
+- Any change to task logic or storage gets a test in the matching `*.test.ts` next to it.
