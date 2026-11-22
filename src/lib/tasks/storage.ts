@@ -40,15 +40,23 @@ export function getBrowserStorage(): StorageLike | null {
   }
 }
 
+function safeJsonParse(raw: string): { ok: true; value: unknown } | { ok: false } {
+  try {
+    return { ok: true, value: JSON.parse(raw) };
+  } catch {
+    return { ok: false };
+  }
+}
+
 /** Parses the raw stored string. Pure: exported for tests. */
 export function parseStoredTasks(raw: string | null): LoadResult {
   if (raw === null || raw === "") return { tasks: [], status: "empty" };
 
-  let data: unknown;
-  try {
-    data = JSON.parse(raw);
-  } catch {
+  const parsed = safeJsonParse(raw);
+  if (!parsed.ok) {
     return { tasks: [], status: "corrupted" };
+  }
+  const data = parsed.value;
   }
 
   if (typeof data !== "object" || data === null) return { tasks: [], status: "corrupted" };
